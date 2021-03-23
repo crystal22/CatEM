@@ -12,22 +12,3 @@ It contains two files in tsv format. Each file contains 8 columns, which are:
 
 The file dataset_TSMC2014_NYC.txt contains 227428 check-ins in New York city.
 The file dataset_TSMC2014_TKY.txt contains 573703 check-ins in Tokyo.
-
-=============================================================================================================================
-Please cite our paper if you publish material based on this dataset.
-
-=============================================================================================================================
-REFERENCES
-
-@article{yang2014modeling,
-	author={Yang, Dingqi and Zhang, Daqing and Zheng, Vincent. W. and Yu, Zhiyong},
-	journal={IEEE Transactions on Systems, Man, and Cybernetics: Systems},
-	title={Modeling User Activity Preference by Leveraging User Spatial Temporal Characteristics in LBSNs},
-	year={2015},
-	volume={45},
-	number={1},
-	pages={129--142},
-	ISSN={2168-2216},
-	publisher={IEEE}
-}
-
