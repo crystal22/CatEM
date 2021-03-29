@@ -4,94 +4,102 @@ import time
 from tqdm import tqdm
 from math import e
 
-negativeNum=5
-learnRate=0.025
-epoch=20
-
+neg_num=5 #负采样数量
+lr=0.025  #学习率
+epoch=20  #迭代次数
 
 class Skipgram:
-    def __init__(self,inputPath,contextPath,targetPath,dim):
+    def __init__(self,input_path,context_emb_path,target_emb_path,dim):
         self.epoch=epoch
-        self.negativeNum = negativeNum
+        self.neg_num = neg_num
         self.vecSize = dim
-        self.learnRate=learnRate
-        self.contextPath=contextPath
-        self.targetPath=targetPath
-        self.inputPath=inputPath
-        self.targetSet = set()
+        self.lr=lr
+        self.context_emb_path=context_emb_path
+        self.target_emb_path=target_emb_path
+        self.input_path=input_path
+        self.target_set = set()
         self.contextSet = set()
         self.trainList=list()
-        self.contextVecMap=dict()
-        self.targetVecMap=dict()
+        self.context2Vec=dict()
+        self.target2Vec=dict()
         self.targetFrequencyList=list()
         self.get_trainList()
         self.computeTargetFrequencyList()
-    def get_trainList(self):
-        with open(self.inputPath,'r',encoding='utf-8') as f:
+
+    def get_trainList(self): #读文件中的check_insequence，初始化训练序列
+        with open(self.input_path,'r',encoding='utf-8') as f:
             for line in f.readlines():
                 line=line.strip()
                 self.trainList.append(line)
 
+    # 对向量进行初始化，采用高斯分布
     def initialize(self):
-        for target in self.targetSet:
+        for target in self.target_set:
             vec=np.random.normal(0,1,self.vecSize)*0.01
-            self.targetVecMap[target] = vec
+            self.target2Vec[target] = vec
         for context in self.contextSet:
             vec=np.random.normal(0,1,self.vecSize)*0.01
-            self.contextVecMap[context] = vec
+            self.context2Vec[context] = vec
 
 
     def trainModel(self):
-        itrNum=0
+        itrNum=0 # 统计迭代次数
         while 1 :
             print('The ' + str(itrNum + 1) + 'th iteration starts.')
-            random.shuffle(self.trainList)
+            random.shuffle(self.trainList)  #对trainlist中的数据进行shuffle
             print('Training data finishes shuffling.')
             time1=time.time()
             loss=[]
-            for each in tqdm(self.trainList,desc='epoch:'+str(itrNum+1)):
-                each=each.strip().split(',')
-                target=each[0]
-                postiveTargetVec = self.targetVecMap[target]
-                contextTemp = each[1].split('#')
+            # 对trainlist进行遍历
+            for each in tqdm(self.trainList, desc='epoch:' + str(itrNum + 1)):  # 对trainlist进行遍历
+                l=0.0 #用来记录本次循环中的loss
+                each = each.strip().split(',')  # 将target和context分开
+                target = each[0]  # 取target
+                postiveTargetVec = self.target2Vec[target]  # 取target对应的向量
+                contextTemp = each[1].split('#')  # 将context存在contextTemp列表中
+                # 遍历contexTemp
                 for context in contextTemp:
-                    contextvec = self.contextVecMap[context] # V(w)
-                    e=np.zeros(len(contextvec),dtype=float)
-                    # positive target
+                    contextvec = self.context2Vec[context] # V(w)
+                    e=np.zeros(len(contextvec),dtype=float) # 初始化e
+
+                    # 处理positive target,以下过程参照《中文详解》，与里面的过程是一致的
                     mul_vec=np.multiply(postiveTargetVec,contextvec)
                     VwThetau=np.sum(mul_vec)
                     q=self.sigmoid(VwThetau)
-                    g=self.learnRate*(1-q)
-                    e+=g*postiveTargetVec
-                    postiveTargetVec+=g*contextvec
-                    loss.append(np.log(q))
-                    #negative target:
-                    negativeTargetTemp=self.getNegativeCategory(target)
-                    for k in range(len(negativeTargetTemp)):
+                    g=self.lr*(1-q)
+                    e+=g*postiveTargetVec #更新e
+                    postiveTargetVec+=g*contextvec #更新target
+                    l+=np.log(q)
+
+                    # 处理negative target:
+                    negativeTargetTemp=self.getNegativeCategory(target) #获取负采样
+                    for k in range(len(negativeTargetTemp)):   # 遍历负采样
                         negativeTarget=negativeTargetTemp[k]
-                        negativeTargetVec=self.targetVecMap[negativeTarget]
-                        mul_vec1=np.multiply(negativeTargetVec,contextvec)
-                        VwThetau1=np.sum(mul_vec1)
+                        negativeTargetVec=self.target2Vec[negativeTarget]
+                        mul_vec1=np.multiply(negativeTargetVec,contextvec)  # negativeTargetVec和contextvec对应位置相乘以求点积
+                        VwThetau1=np.sum(mul_vec1)  #得到点积
                         q1=self.sigmoid(VwThetau1)
-                        g1=self.learnRate*(0-q1)
+                        g1=self.lr*(0-q1)
                         e+=g1*negativeTargetVec
-                        negativeTargetVec+=g1*contextvec
-                        loss.append(np.log(1-q1))
-                    contextvec+=e
+                        negativeTargetVec+=g1*contextvec  #更新
+                        l += np.log(1-q1)  #记录损失
+                    contextvec+=e  #更新contex向量
+                    loss.append(l)
             loss=np.array(loss)
-            print('loss=',np.mean(loss))
+            print('loss=',np.mean(loss))  # 输出loss的均值
             itrNum+=1
             if itrNum>=float(self.epoch) :
                 break
             time2=time.time()
             runtime=time2-time1
-            print(runtime,'seconds')
+            print(runtime,'seconds')  #输出运行时间，单位:秒
 
-            if itrNum % 2 == 0:
-                self.learnRate/=2
-            if itrNum < 0.0000025:
+            if itrNum % 2 == 0:   #学习率每迭代两次减半
+                self.lr/=2
+            if itrNum < 0.0000025: #学习率下降到0.0000025以下，便不再减少
                 itrNum = 0.0000025
 
+    #保存模型
     def saveModel(self,VecMap,path):
         for t in VecMap:
             vec=VecMap[t]
@@ -99,6 +107,8 @@ class Skipgram:
             vec=''.join(map(lambda x:','+str(x),veclist))
             with open(path,'a',encoding='utf-8') as f:
                 f.write(str(t)+vec+'\n')
+
+    # 获取负采样
     def getNegativeCategory(self,target):
         negativeCategoryList=list() #对target 取的负采样
         sampleCount = 0 #当前的采样的个数
@@ -111,13 +121,11 @@ class Skipgram:
             if sampleTargetCategory!=target:
                 negativeCategoryList.append(sampleTargetCategory)
                 sampleCount+=1
-            if sampleCount==self.negativeNum or count>50:
+            if sampleCount==self.neg_num or count>50: #负采样采够了就停止
                 break
-        return negativeCategoryList
+        return negativeCategoryList  #返回负采样，为一个列表
 
-
-
-
+    #根据词频得到负采样的序列
     def computeTargetFrequencyList(self):
         candidateTargetCountMap=dict()
         for each in self.trainList:
@@ -127,7 +135,7 @@ class Skipgram:
                 candidateTargetCountMap[target] += 1
             else:
                 candidateTargetCountMap[target] = 1
-            self.targetSet.add(target)
+            self.target_set.add(target)
             firstContext=each[1]
             temp=firstContext.split('#')
             for t in temp:
@@ -151,15 +159,12 @@ class Skipgram:
     def Process(self):
         self.initialize()
         self.trainModel()
-        self.saveModel(self.contextVecMap, self.contextPath)
-        self.saveModel(self.targetVecMap, self.targetPath)
+        self.saveModel(self.context2Vec, self.context_emb_path)
+        self.saveModel(self.target2Vec, self.target_emb_path)
 
 if __name__ == '__main__':
-    # for i in range(10,101,10):
-    #     cb=Skipgram(inputPath='data/target_context_win5.txt',contextPath='result_neg5/context_vec'+str(i)+'.txt',targetPath='result_neg5/target_vec'+str(i)+'.txt',dim=i)
-    #     cb.Process()
     dim=50
-    cb=Skipgram(inputPath='data/target_context_win5.txt',contextPath='result_neg5/context_vec'+str(dim)+'.txt',targetPath='result_neg5/target_vec'+str(dim)+'.txt',dim=dim)
+    cb=Skipgram(input_path='data/target_context_win5.txt',context_emb_path='result_neg5/context_vec'+str(dim)+'.txt',target_emb_path='result_neg5/target_vec'+str(dim)+'.txt',dim=dim)
     cb.Process()
 
 
