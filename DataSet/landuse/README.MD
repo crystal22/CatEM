@@ -6,9 +6,7 @@
 
 删去不在网格内poi后，各城市 poi 各大类别数量如下：
 
-![图片](https://user-images.githubusercontent.com/78341268/112826652-dca6bc00-90bf-11eb-86f7-2fb15c9a955f.png)
-
-
+![图片](https://user-images.githubusercontent.com/78341268/112835481-e6ceb780-90cb-11eb-8ad5-66ac45e89738.png)
 
 其中，纽约的网格类别代码为：
 
