@@ -3,16 +3,26 @@
 其中，纽约的网格类别代码为：
 
 1	Residential
+
 2	Mixed Residential & Commercial Buildings
+
 3	Commercial & Office Buildings
+
 4	Transportation & Utility
+
 5	Open Space & Outdoor Recreation
+
 6	Other
 
 其余四个城市的网格类别代码为：
 
 1	High Density Urban Fabric
+
 2	ML-Density Urban Fabric
+
 3	Industrial,commercial, public, military and private units
+
 4	Open Space& Recreation
+
 5	Transportation
+
