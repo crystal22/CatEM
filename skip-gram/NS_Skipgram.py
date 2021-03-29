@@ -1,173 +1,197 @@
 import numpy as np
 import random
-import time
 from tqdm import tqdm
-from math import e
+from math import log2, exp
 
-neg_num=5 #负采样数量
-lr=0.025  #学习率
-epoch=20  #迭代次数
-
-class Skipgram:
-    def __init__(self,input_path,context_emb_path,target_emb_path,dim):
-        self.epoch=epoch
-        self.neg_num = neg_num
-        self.vecSize = dim
-        self.lr=lr
-        self.context_emb_path=context_emb_path
-        self.target_emb_path=target_emb_path
-        self.input_path=input_path
-        self.target_set = set()
-        self.contextSet = set()
-        self.trainList=list()
-        self.context2Vec=dict()
-        self.target2Vec=dict()
-        self.targetFrequencyList=list()
-        self.get_trainList()
-        self.computeTargetFrequencyList()
-
-    def get_trainList(self): #读文件中的check_insequence，初始化训练序列
-        with open(self.input_path,'r',encoding='utf-8') as f:
-            for line in f.readlines():
-                line=line.strip()
-                self.trainList.append(line)
-
-    # 对向量进行初始化，采用高斯分布
-    def initialize(self):
-        for target in self.target_set:
-            vec=np.random.normal(0,1,self.vecSize)*0.01
-            self.target2Vec[target] = vec
-        for context in self.contextSet:
-            vec=np.random.normal(0,1,self.vecSize)*0.01
-            self.context2Vec[context] = vec
+EXP_TABLE_SIZE = 1000
+MAX_EXP = 6
+expTable = np.zeros(EXP_TABLE_SIZE)
 
 
-    def trainModel(self):
-        itrNum=0 # 统计迭代次数
-        while 1 :
-            print('The ' + str(itrNum + 1) + 'th iteration starts.')
-            random.shuffle(self.trainList)  #对trainlist中的数据进行shuffle
-            print('Training data finishes shuffling.')
-            time1=time.time()
-            loss=[]
-            # 对trainlist进行遍历
-            for each in tqdm(self.trainList, desc='epoch:' + str(itrNum + 1)):  # 对trainlist进行遍历
-                l=0.0 #用来记录本次循环中的loss
-                each = each.strip().split(',')  # 将target和context分开
-                target = each[0]  # 取target
-                postiveTargetVec = self.target2Vec[target]  # 取target对应的向量
-                contextTemp = each[1].split('#')  # 将context存在contextTemp列表中
-                # 遍历contexTemp
-                for context in contextTemp:
-                    contextvec = self.context2Vec[context] # V(w)
-                    e=np.zeros(len(contextvec),dtype=float) # 初始化e
+def getTrainList(inputPath):
+    """
+    从文件中获取训练数据
+    :param inputPath: 训练数据文件路径 文件中存储格式为 target,context1#context2#context3#...#contextn
+    :return:
+    """
+    trainList = []
+    with open(inputPath, 'r', encoding='utf-8') as f:
+        for line in f.readlines():
+            line = line.strip()
+            trainList.append(line)
+    return trainList
 
-                    # 处理positive target,以下过程参照《中文详解》，与里面的过程是一致的
-                    mul_vec=np.multiply(postiveTargetVec,contextvec)
-                    VwThetau=np.sum(mul_vec)
-                    q=self.sigmoid(VwThetau)
-                    g=self.lr*(1-q)
-                    e+=g*postiveTargetVec #更新e
-                    postiveTargetVec+=g*contextvec #更新target
-                    l+=np.log(q)
 
-                    # 处理negative target:
-                    negativeTargetTemp=self.getNegativeCategory(target) #获取负采样
-                    for k in range(len(negativeTargetTemp)):   # 遍历负采样
-                        negativeTarget=negativeTargetTemp[k]
-                        negativeTargetVec=self.target2Vec[negativeTarget]
-                        mul_vec1=np.multiply(negativeTargetVec,contextvec)  # negativeTargetVec和contextvec对应位置相乘以求点积
-                        VwThetau1=np.sum(mul_vec1)  #得到点积
-                        q1=self.sigmoid(VwThetau1)
-                        g1=self.lr*(0-q1)
-                        e+=g1*negativeTargetVec
-                        negativeTargetVec+=g1*contextvec  #更新
-                        l += np.log(1-q1)  #记录损失
-                    contextvec+=e  #更新contex向量
-                    loss.append(l)
-            loss=np.array(loss)
-            print('loss=',np.mean(loss))  # 输出loss的均值
-            itrNum+=1
-            if itrNum>=float(self.epoch) :
-                break
-            time2=time.time()
-            runtime=time2-time1
-            print(runtime,'seconds')  #输出运行时间，单位:秒
+def initialize(categorySet, vecSize):
+    """
+    使用高斯分布乘以0.01 初始化target,context向量
+    :param categorySet: 位置类别的集合
+    :param vecSize: 向量的长度
+    """
+    target2Vec, context2Vec = {}, {}
+    for category in categorySet:
+        vec = np.random.normal(0, 1, vecSize) * 0.01
+        target2Vec[category] = vec
+        vec = np.random.normal(0, 1, vecSize) * 0.01
+        context2Vec[category] = vec
+    return target2Vec, context2Vec
 
-            if itrNum % 2 == 0:   #学习率每迭代两次减半
-                self.lr/=2
-            if itrNum < 0.0000025: #学习率下降到0.0000025以下，便不再减少
-                itrNum = 0.0000025
 
-    #保存模型
-    def saveModel(self,VecMap,path):
-        for t in VecMap:
-            vec=VecMap[t]
-            veclist=vec.tolist()
-            vec=''.join(map(lambda x:','+str(x),veclist))
-            with open(path,'a',encoding='utf-8') as f:
-                f.write(str(t)+vec+'\n')
+def trainModel(trainList, targetVectors, contextVectors, targetPath, contextPath, targetFrequencyList):
+    """
+    模型训练，参照《word2vec中的数学原理》
+    :param trainList: 训练数据的列表集合 每一条数据格式为 'target,context1#context2#context3#...#contextn'
+    :param targetVectors: target向量字典
+    :param contextVectors: context向量字典
+    :param targetPath: 保存target向量字典路径
+    :param contextPath: 保存context向量字典路径
+    :param targetFrequencyList: 用负采样的target频率列表
+    """
+    itrNum = 0
+    negativeNum = 5
+    lr = 0.025
+    epoch = 20
+    while 1:
+        print('The ' + str(itrNum + 1) + 'th iteration starts.')
+        random.shuffle(trainList)
+        print('Training data finishes shuffling.')
+        loss = []
 
-    # 获取负采样
-    def getNegativeCategory(self,target):
-        negativeCategoryList=list() #对target 取的负采样
-        sampleCount = 0 #当前的采样的个数
-        count = 0
-        while 1:
-            count+=1
-            index=min(len(self.targetFrequencyList)-1,  np.random.random()*len(self.targetFrequencyList))
-            index=int(index)
-            sampleTargetCategory=self.targetFrequencyList[index]
-            if sampleTargetCategory!=target:
-                negativeCategoryList.append(sampleTargetCategory)
-                sampleCount+=1
-            if sampleCount==self.neg_num or count>50: #负采样采够了就停止
-                break
-        return negativeCategoryList  #返回负采样，为一个列表
-
-    #根据词频得到负采样的序列
-    def computeTargetFrequencyList(self):
-        candidateTargetCountMap=dict()
-        for each in self.trainList:
+        for each in tqdm(trainList, desc='epoch:' + str(itrNum + 1)):
+            epochLoss = 0.0
             each = each.strip().split(',')
             target = each[0]
-            if target in candidateTargetCountMap:
-                candidateTargetCountMap[target] += 1
-            else:
-                candidateTargetCountMap[target] = 1
-            self.target_set.add(target)
-            firstContext=each[1]
-            temp=firstContext.split('#')
-            for t in temp:
-                self.contextSet.add(t)
-        min=10000
-        for tar in candidateTargetCountMap:
-            if candidateTargetCountMap[tar]<min:
-                min=candidateTargetCountMap[tar]
+            targetVector = targetVectors[target]
+            contextCategory = each[1].split('#')
+            negativeCategory = getNegativeCategory(target, negativeNum, targetFrequencyList)
+            e = np.zeros(len(targetVector), dtype=float)
+            for context in contextCategory:
+                contextVector = contextVectors[context]
+                vecMul = np.dot(targetVector, contextVector)
+                q = getSigmoid(vecMul)
+                g = lr * (1 - q)
+                e += g * contextVector
+                contextVectors[context] += g * targetVector
+                epochLoss += log2(q)
 
-        for tar in candidateTargetCountMap:
-            count=candidateTargetCountMap[tar]
-            newcount=int((count/(min+0.0))**0.75)
-            for i in range(newcount):
-                self.targetFrequencyList.append(tar)
+            for negative in negativeCategory:
+                negativeVector = contextVectors[negative]
+                vecMul = np.dot(targetVector, negativeVector)
+                q = getSigmoid(vecMul)
+                g = lr * (-q)
+                e += g * negativeVector
+                contextVectors[negative] += g * targetVector
+                epochLoss += log2(1 - q)
+            targetVectors[target] += e
+            loss.append(-epochLoss)
+        loss = np.array(loss)
+        print('loss=', loss.mean())
+        itrNum += 1
+        if itrNum >= epoch:
+            break
+        if itrNum % 2 == 0:
+            lr /= 2
+        if itrNum < 0.0000025:
+            itrNum = 0.0000025
+
+    saveModel(targetVectors, targetPath)
+    saveModel(contextVectors, contextPath)
 
 
-    def sigmoid(self,x):
-            return 1. / (1. + np.exp(-x))
+def saveModel(categoryVector, path):
+    """
+    保存vector向量
+    """
+    with open(path, 'a', encoding='utf-8') as f:
+        for t in categoryVector.keys():
+            vector = categoryVector[t].tolist()
+            vector = ''.join(map(lambda x: ',' + str(x), vector))
+            f.write(str(t) + vector + '\n')
 
 
-    def Process(self):
-        self.initialize()
-        self.trainModel()
-        self.saveModel(self.context2Vec, self.context_emb_path)
-        self.saveModel(self.target2Vec, self.target_emb_path)
+def getNegativeCategory(target, negativeNum, targetFrequencyList):
+    """
+    生成负采样
+    :param target:
+    :param negativeNum: 负采样的个数
+    :param targetFrequencyList: target频率列表 target出现频率高，被选为负样本的概率就越高
+    """
+    negativeCategoryList = []
+    sampleCount, count = 0, 0
+    while 1:
+        count += 1
+        index = min(len(targetFrequencyList) - 1, np.random.random() * len(targetFrequencyList))
+        index = int(index)
+        sampleTargetCategory = targetFrequencyList[index]
+        if sampleTargetCategory != target:
+            negativeCategoryList.append(sampleTargetCategory)
+            sampleCount += 1
+        if sampleCount == negativeNum or count > 50:
+            break
+
+    return negativeCategoryList
+
+
+def computeTargetFrequencyList(trainList):
+    """
+    统计target出现次数，生成频率列表，用于带权重的负采样。
+    """
+    categorySet = set()
+    targetFrequencyList = []
+    candidateTargetCountMap = dict()
+    for each in trainList:
+        each = each.strip().split(',')
+        target = each[0]
+        if target in candidateTargetCountMap:
+            candidateTargetCountMap[target] += 1
+        else:
+            candidateTargetCountMap[target] = 1
+        categorySet.add(target)
+
+    minCount = 10000
+    for tar in candidateTargetCountMap:
+        if candidateTargetCountMap[tar] < minCount:
+            minCount = candidateTargetCountMap[tar]
+
+    for tar in candidateTargetCountMap:
+        count = candidateTargetCountMap[tar]
+        newCount = int((count / (minCount + 0.0)) ** 0.75)
+        for i in range(newCount):
+            targetFrequencyList.append(tar)
+
+    return categorySet, targetFrequencyList
+
+
+def createExpTable():
+    for i in range(EXP_TABLE_SIZE):
+        expTable[i] = exp(((i / EXP_TABLE_SIZE * 2 - 1) * MAX_EXP))
+        expTable[i] = expTable[i] / (expTable[i] + 1)
+
+
+def getSigmoid(z):
+    if z >= 8:
+        return 0.9999
+    if z <= -8:
+        return 0.0001
+    sigmoidZ = 1 / (1 + exp(-z))
+    if sigmoidZ <= 0.0001:
+        sigmoidZ = 0.0001
+    if sigmoidZ >= 0.9999:
+        sigmoidZ = 0.9999
+    return sigmoidZ
+
+
+def main():
+    inputPath = 'E:\\PycharmProjects\\TSMC\\output\\NYC\\center_context_with_sequence.txt'
+    vecSize = 100
+    contextPath = 'E:\\PycharmProjects\\TSMC\\output\\NYC\\context_vector' + str(vecSize) + '.txt'
+    targetPath = 'E:\\PycharmProjects\\TSMC\\output\\NYC\\target_vector' + str(vecSize) + '.txt'
+    createExpTable()
+    trainList = getTrainList(inputPath)
+    categorySet, targetFrequencyList = computeTargetFrequencyList(trainList)
+    targetVector, contextVector = initialize(categorySet, vecSize)
+    trainModel(trainList, targetVector, contextVector, targetPath, contextPath, targetFrequencyList)
+
 
 if __name__ == '__main__':
-    dim=50
-    cb=Skipgram(input_path='data/target_context_win5.txt',context_emb_path='result_neg5/context_vec'+str(dim)+'.txt',target_emb_path='result_neg5/target_vec'+str(dim)+'.txt',dim=dim)
-    cb.Process()
-
-
-
-
-
+    main()
