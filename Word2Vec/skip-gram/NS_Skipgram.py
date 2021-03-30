@@ -64,25 +64,25 @@ def trainModel(trainList, targetVectors, contextVectors, targetPath, contextPath
             targetVector = targetVectors[target]
             contextCategory = each[1].split('#')
             negativeCategory = getNegativeCategory(target, negativeNum, targetFrequencyList)
-            e = np.zeros(len(targetVector), dtype=float)
             for context in contextCategory:
+                e = np.zeros(len(targetVector), dtype=float)
                 contextVector = contextVectors[context]
-                vecMul = np.dot(targetVector, contextVector)
+                vecMul = np.dot(contextVector, targetVector)
                 q = getSigmoid(vecMul)
                 g = lr * (1 - q)
-                e += g * contextVector
-                contextVectors[context] += g * targetVector
+                e += g * targetVector
+                targetVectors[target] += g * contextVector
                 epochLoss += log2(q)
 
-            for negative in negativeCategory:
-                negativeVector = contextVectors[negative]
-                vecMul = np.dot(targetVector, negativeVector)
-                q = getSigmoid(vecMul)
-                g = lr * (-q)
-                e += g * negativeVector
-                contextVectors[negative] += g * targetVector
-                epochLoss += log2(1 - q)
-            targetVectors[target] += e
+                for negative in negativeCategory:
+                    negativeVector = contextVectors[negative]
+                    vecMul = np.dot(contextVector, negativeVector)
+                    q = getSigmoid(vecMul)
+                    g = lr * (-q)
+                    e += g * negativeVector
+                    targetVectors[negative] += g * contextVector
+                    epochLoss += log2(1 - q)
+                contextVectors[context] += e
             loss.append(-epochLoss)
         loss = np.array(loss)
         print('loss=', loss.mean())
