@@ -83,6 +83,7 @@ class CBOW:
                 g = self.learnRate * (1 - q)
                 e += g * targetVector
                 targetVector += g * contextVector
+                self.targetVectors[target]=targetVector
                 epochLoss += log2(q)  # 记录loss
 
                 for negative in negativeCategory:
@@ -93,11 +94,13 @@ class CBOW:
                     g = self.learnRate * (-q)
                     e += g * negativeVector
                     negativeVector += g * contextVector
+                    self.targetVectors[negative]= negativeVector
                     epochLoss += np.log(1 - q)
 
                 for context in contextCategory:
                     contextVector = self.contextVectors[context]
                     contextVector += e
+                    self.contextVectors[context]=contextVector
 
                 loss.append(epochLoss)
 

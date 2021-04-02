@@ -6,18 +6,15 @@ from sklearn.utils import shuffle
 
 min_count = 1
 embed_size = 50
-embed_batch_size = 64
 embed_epoch = 12
-embed_name = 'p2v'
 DECAY = 0.5
-window_size = 4
+window_size = 5
 indi_context = False
 init_lr = 0.025
-embed_adam = False  # Set True to use Adam optimizer, or else SGD.
-device = 'cpu'  # 'cuda:0'
-dataset_name = 'mynyc'
-input_file_name = './dataset/cate_sequences.txt'
-output_file_name = "E:\jupyer notebook\cbow\category_embedding.txt"
+
+input_file_name = 'E:\jupyer notebook\cbow\cate_sequences.txt'
+output_file_name1 = "E:\jupyer notebook\cbow\CBOW_u_embedding.txt"
+output_file_name2 = "E:\jupyer notebook\cbow\CBOW_w_embedding.txt"
 
 
 class W2VData:
@@ -193,20 +190,20 @@ def train_cbow(train_set, num_epoch, init_lr, num_vocab, embed_dimension, decay)
     :param decay: 学习率衰减情况
     :return: u_embedding,即单词向量的array形式
     """
-    # u_embedding = np.random.rand(num_vocab, embed_dimension)  # 向量初始化  叶子节点的向量   也可高斯分布初始化，但是这边尝试均匀分布效果更好
-    # w_embedding = np.random.rand(num_vocab, embed_dimension)  # 初始化   内部节点的向量
-    u_embedding=np.random.normal(0, 0.01, (num_vocab, embed_dimension))
-    w_embedding = np.random.normal(0, 0.01, (num_vocab, embed_dimension))
+    u_embedding = np.random.rand(num_vocab, embed_dimension)  # 向量初始化  叶子节点的向量   也可高斯分布初始化，但是这边尝试均匀分布效果更好
+    w_embedding = np.random.rand(num_vocab, embed_dimension)  # 初始化   内部节点的向量
+    # u_embedding=np.random.normal(0, 0.01, (num_vocab, embed_dimension))
+    # w_embedding = np.random.normal(0, 0.01, (num_vocab, embed_dimension))
     lr = init_lr
-    train_set = shuffle(train_set)  ##乱序
-    # pair_count = num_epoch * len(train_set)
     trained = 0
     for epoch in range(num_epoch):
         loss_log = []
+        train_set = shuffle(train_set)  ##乱序
         for pair in tqdm(train_set):  ##一行数据，即处理一个target的[context,pos节点,neg节点]
             loss = 0
             context, pos_pairs, neg_pairs = pair
             neul = np.mean(u_embedding[context], axis=0)
+            # neul=u_embedding[context].sum(axis=0)
             neu1e = np.zeros(embed_size)  # 这个是预测的target的embedding，也就是cbow中的ωt
             for j in pos_pairs:
                 z = np.dot(neul, w_embedding[j])  # 将整合后的neul也就是xω和target到root的路径节点相乘
@@ -227,21 +224,24 @@ def train_cbow(train_set, num_epoch, init_lr, num_vocab, embed_dimension, decay)
                 u_embedding[con] += neu1e  ##叶子节点，也就是这个target的所有context进行更新
             loss_log.append(-loss)
             trained += 1
-            if epoch ==5:
-                print()
         print('Epoch %d avg loss: %.5f' % (epoch, np.mean(loss_log)))  ##输出loss值
         # lr = init_lr -(init_lr-0.00001)* ( trained_batches / embed_epoch*batch_count)
         lr = init_lr * decay ** epoch  ##可变学习率变化方法
         if lr <= 0.000025:
             lr = 0.000025
-    return np.array(u_embedding)  ##返回叶子节点的向量
+    return np.array(u_embedding), np.array(w_embedding)  ##返回叶子节点的向量
 
 
 def sigmoid(z):  # sigmoid激活函数
+    if z >= 12:
+        return 0.9999999
+    if z <= -12:
+        return 0.0000001
     return 1 / (1 + math.exp(-z))
 
 
-def HS_cbow(input_file_name, output_file_name, embed_size, window_size, embed_epoch, init_lr, decay, indi_context):
+def HS_cbow(input_file_name, output_file_name1, output_file_name2, embed_size, window_size, embed_epoch, init_lr, decay,
+            indi_context):
     """
     :param input_file_name:  输入文件路径（.txt格式，用空格隔开）
     :param output_file_name:  输出文件路径
@@ -271,16 +271,24 @@ def HS_cbow(input_file_name, output_file_name, embed_size, window_size, embed_ep
         id_sentences.append([word2id[word] for word in words])  # 从单词序列转为id序列
     embed_dataset = HSData(sentences=id_sentences, indi_context=indi_context)  ##数据预处理
     train_set = embed_dataset.get_path_pairs(window_size)  ##获取数据集
-    embed_mat = train_cbow(train_set, embed_epoch, init_lr, len(word2id), embed_size, decay=DECAY)  ##模型训练
-    file_output = open(output_file_name, 'w')  # 打开要保存的文件路径
+    u_embed_mat, w_embed_mat = train_cbow(train_set, embed_epoch, init_lr, len(word2id), embed_size,
+                                          decay=DECAY)  ##模型训练
+    file_output = open(output_file_name1, 'w')  # 打开要保存的文件路径
     for id, word in id2word.items():
-        e = embed_mat[id]
+        e = u_embed_mat[id]
         e = ' '.join(map(lambda x: str(x), e))  # 把word名放在向量最前面
         file_output.write('%s %s\n' % (word, e))
     file_output.close()
-    return embed_mat
+
+    file_output = open(output_file_name2, 'w')  # 打开要保存的文件路径
+    for id, word in id2word.items():
+        e = w_embed_mat[id]
+        e = ' '.join(map(lambda x: str(x), e))  # 把word名放在向量最前面
+        file_output.write('%s %s\n' % (word, e))
+    file_output.close()
+    return u_embed_mat, w_embed_mat
 
 
 if __name__ == '__main__':
-    embed_mat = HS_cbow(input_file_name, output_file_name, embed_size, window_size, embed_epoch, init_lr, DECAY,
-                        indi_context)
+    u_embed_mat, w_embed_mat = HS_cbow(input_file_name, output_file_name1, output_file_name2, embed_size, window_size,
+                                       embed_epoch, init_lr, DECAY, indi_context)
