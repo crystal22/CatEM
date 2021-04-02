@@ -16,7 +16,7 @@ init_lr = 0.025
 embed_adam = False  # Set True to use Adam optimizer, or else SGD.
 device = 'cpu'  # 'cuda:0'
 dataset_name = 'mynyc'
-input_file_name = 'C:/Users/dell/Desktop/nyc_sequence/cate_sequences.txt'
+input_file_name = './dataset/cate_sequences.txt'
 output_file_name = "E:\jupyer notebook\cbow\category_embedding.txt"
 
 
@@ -193,10 +193,10 @@ def train_cbow(train_set, num_epoch, init_lr, num_vocab, embed_dimension, decay)
     :param decay: 学习率衰减情况
     :return: u_embedding,即单词向量的array形式
     """
-    u_embedding = np.random.rand(num_vocab, embed_dimension)  # 向量初始化  叶子节点的向量   也可高斯分布初始化，但是这边尝试均匀分布效果更好
-    w_embedding = np.random.rand(num_vocab, embed_dimension)  # 初始化   内部节点的向量
-    # u_embedding=np.random.normal(0, 0.01, (num_vocab, embed_dimension))
-    # w_embedding = np.random.normal(0, 0.01, (num_vocab, embed_dimension))
+    # u_embedding = np.random.rand(num_vocab, embed_dimension)  # 向量初始化  叶子节点的向量   也可高斯分布初始化，但是这边尝试均匀分布效果更好
+    # w_embedding = np.random.rand(num_vocab, embed_dimension)  # 初始化   内部节点的向量
+    u_embedding=np.random.normal(0, 0.01, (num_vocab, embed_dimension))
+    w_embedding = np.random.normal(0, 0.01, (num_vocab, embed_dimension))
     lr = init_lr
     train_set = shuffle(train_set)  ##乱序
     # pair_count = num_epoch * len(train_set)
@@ -227,6 +227,8 @@ def train_cbow(train_set, num_epoch, init_lr, num_vocab, embed_dimension, decay)
                 u_embedding[con] += neu1e  ##叶子节点，也就是这个target的所有context进行更新
             loss_log.append(-loss)
             trained += 1
+            if epoch ==5:
+                print()
         print('Epoch %d avg loss: %.5f' % (epoch, np.mean(loss_log)))  ##输出loss值
         # lr = init_lr -(init_lr-0.00001)* ( trained_batches / embed_epoch*batch_count)
         lr = init_lr * decay ** epoch  ##可变学习率变化方法
