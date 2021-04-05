@@ -1,0 +1,6 @@
+SequenceModel
+data文件夹中category.csv文件描述的是FourSquare数据集上category之间层次关系，根据文件中的'parent'字段的信息可以构建一颗category层次树。
+注意这是FourSquare数据集上category之间层次关系！
+其余的csv文件是根据ITDL论文中提到的六种评测方法生成的ground truth，每一个csv文件对应一种基于层次树的评测方法，文件中的每行代表为第一列的category根据此评测方法与其他category计算得到的值，格式为<category_id1@value>。
+文件的生成是根据Hierarchical Tree文件夹中pairwise_similarity.ipynb对应"FourSquare生成ground truth"部分代码生成。
+代码或者数据有问题请及时反馈。
