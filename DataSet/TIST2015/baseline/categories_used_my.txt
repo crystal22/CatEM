@@ -1,0 +1,363 @@
+Pool Hall
+Medical School
+Music Venue
+Hospital
+Cheese Shop
+Electronics Store
+Garden Center
+Newsstand
+Train Station
+Capitol Building
+Indonesian Restaurant
+Conference Room
+College Auditorium
+Medical Center
+Toy / Game Store
+Post Office
+College Theater
+Government Building
+Outdoors & Recreation
+Smoke Shop
+Automotive Shop
+Opera House
+Fair
+Surf Spot
+Flea Market
+Indian Restaurant
+Chinese Restaurant
+Gift Shop
+Football Stadium
+Photography Lab
+Airport Terminal
+Zoo
+Monument / Landmark
+Meeting Room
+Thai Restaurant
+Auto Dealership
+Stables
+Mediterranean Restaurant
+Theme Park Ride / Attraction
+Motorcycle Shop
+Hobby Shop
+Animal Shelter
+Garden
+Track Stadium
+Salon / Barbershop
+Water Park
+Grocery Store
+Sushi Restaurant
+Airport Lounge
+Fast Food Restaurant
+Gourmet Shop
+Building
+Hostel
+Hotel Pool
+Sorority House
+Vegetarian / Vegan Restaurant
+Residential Building (Apartment / Condo)
+Rock Club
+Dessert Shop
+Boat or Ferry
+Plaza
+Sports Bar
+Record Shop
+Gym / Fitness Center
+Japanese Restaurant
+Housing Development
+College History Building
+Noodle House
+Hot Dog Joint
+Public Art
+Video Store
+Recycling Facility
+Martial Arts Dojo
+Tea Room
+Movie Theater
+Tennis Court
+Trade School
+German Restaurant
+Wine Bar
+Middle Eastern Restaurant
+Strip Club
+Speakeasy
+Parking
+Moving Target
+Burrito Place
+Factory
+College Arts Building
+Dumpling Restaurant
+Courthouse
+Mobile Phone Shop
+Aquarium
+Financial or Legal Service
+Laundry Service
+Brewery
+Distillery
+Event Space
+Farmers Market
+College Bookstore
+Performing Arts Venue
+Train
+Sporting Goods Shop
+Arts & Entertainment
+Hotel
+Vietnamese Restaurant
+Diner
+Restaurant
+Scenic Lookout
+Butcher
+Antique Shop
+University
+Boutique
+Bike Rental / Bike Share
+Church
+Women's Store
+Thrift / Vintage Store
+College Communications Building
+Whisky Bar
+Convention Center
+College Quad
+Indie Movie Theater
+Mexican Restaurant
+Assisted Living
+Casino
+Fish Market
+Student Center
+Veterinarian
+Coworking Space
+French Restaurant
+Furniture / Home Store
+Law School
+Library
+Road
+Gaming Cafe
+Spa
+Board Shop
+Platform
+Gym Pool
+Cosmetics Shop
+Neighborhood
+Voting Booth
+High School
+Music School
+Shoe Store
+Asian Restaurant
+Roof Deck
+Funeral Home
+Travel & Transport
+Food Court
+Donut Shop
+Arts & Crafts Store
+New American Restaurant
+Spanish Restaurant
+Metro Station
+Rest Area
+Comedy Club
+Concert Hall
+Non-Profit
+Shrine
+Pier
+College Academic Building
+Mountain
+Piano Bar
+Nightlife Spot
+Sake Bar
+College Math Building
+Food
+Sculpture Garden
+Pub
+Steakhouse
+Other Great Outdoors
+Wine Shop
+Kids Store
+Cafe
+Community College
+Beer Garden
+Turkish Restaurant
+Paper / Office Supplies Store
+Doctor's Office
+Temple
+Video Game Store
+Internet Cafe
+Shop & Service
+Hot Spring
+Climbing Gym
+History Museum
+Seafood Restaurant
+Auditorium
+Athletics & Sports
+Boarding House
+College Gym
+Caribbean Restaurant
+Island
+Dance Studio
+Other Nightlife
+Ski Area
+Food Truck
+Fried Chicken Joint
+Optical Shop
+Harbor / Marina
+Bar
+Pizza Place
+Golf Course
+Gay Bar
+Bakery
+Gym
+College Residence Hall
+Soccer Stadium
+General College & University
+Museum
+Soccer Field
+Trail
+Nightclub
+Bus Line
+Basketball Stadium
+Design Studio
+Tattoo Parlor
+Travel Lounge
+Bike Shop
+Tapas Restaurant
+Bank
+Taxi
+Stadium
+Car Wash
+Dim Sum Restaurant
+Drugstore
+Brazilian Restaurant
+Snack Place
+Skating Rink
+Market
+Laboratory
+BBQ Joint
+Cemetery
+Bed & Breakfast
+Elementary School
+Bookstore
+Fire Station
+Light Rail Station
+College Science Building
+Cupcake Shop
+Cuban Restaurant
+Professional & Other Places
+Baseball Stadium
+Lingerie Store
+City Hall
+Travel Agency
+College Technology Building
+Campaign Office
+Lake
+Shopping Mall
+Burger Joint
+Baseball Field
+Nursery School
+Cocktail Bar
+College Library
+Middle School
+Hardware Store
+Campground
+Police Station
+Jazz Club
+Radio Station
+Park
+Pool
+Playground
+Cafeteria
+Mosque
+Convenience Store
+Hookah Bar
+College Classroom
+Tech Startup
+Historic Site
+Airport Gate
+Bus Station
+Science Museum
+Tourist Information Center
+General Travel
+Clothing Store
+Karaoke Bar
+Eastern European Restaurant
+Dog Run
+Embassy / Consulate
+American Restaurant
+Ice Cream Shop
+Resort
+Lounge
+Castle
+Breakfast Spot
+Malay Restaurant
+Wings Joint
+Real Estate Office
+Airport
+Art Gallery
+Deli / Bodega
+Sandwich Place
+Arcade
+College Lab
+Coffee Shop
+Taco Place
+Rental Car Location
+Camera Store
+Military Base
+Gas Station
+Flower Shop
+College & University
+Australian Restaurant
+Office
+Juice Bar
+College Rec Center
+Dentist's Office
+Winery
+Skate Park
+Planetarium
+Italian Restaurant
+Racetrack
+Indie Theater
+Bridal Shop
+Men's Store
+Theater
+General Entertainment
+College Administrative Building
+Music Store
+College Stadium
+College Track
+Jewelry Store
+Yoga Studio
+Gastropub
+Scandinavian Restaurant
+Spiritual Center
+Korean Restaurant
+Bagel Shop
+Pet Store
+Dive Bar
+Candy Store
+College Cafeteria
+Liquor Store
+Plane
+Motel
+Miscellaneous Shop
+Lighthouse
+Department Store
+Hotel Bar
+Field
+Well
+Soup Place
+Farm
+Track
+City
+Daycare
+Bowling Alley
+Bridge
+Beach
+College Engineering Building
+Salad Place
+Home (private)
+Accessories Store
+River
+Tanning Salon
+Food & Drink Shop
+Art Museum
+Theme Park
+Multiplex
+Fraternity House
+Basketball Court
+School
