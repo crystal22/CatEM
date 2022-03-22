@@ -1,0 +1,41 @@
+{
+  "train": {
+    "negative_sampler": "PopularitySampler",
+    "negative_sampler_config": {
+    },
+    "loss": "WeightedBinaryCELoss",
+    "loss_config": "",
+    "num_negative_samples": 5,
+    "batch_size": 32,
+    "num_epochs": 10,
+    "num_workers": 0
+  },
+  "test": {
+    "num_negative_samples": 5,
+    "batch_size": 64,
+    "num_epochs": 10,
+    "num_workers": 0
+  },
+  "model": {
+    "user_embedding_dim": 100,
+    "location_embedding_dim": 100,
+    "time_embedding_dim": 100,
+    "region_embedding_dim": 100,
+    "hidden_dim_encoder": 100,
+    "num_heads_encoder": 4,
+    "num_heads_decoder": 4,
+    "num_layers_encoder": 6,
+    "dropout": 0.5,
+    "extra_config": {
+      "position_encoding": "transformer",
+      "use_location_only": "False",
+      "user_embedding": "False",
+      "embedding_fusion": "concat",
+      "size_sqrt_regularize": "True"
+    }
+  },
+  "optimizer": {
+    "optimizer": "adam",
+    "learning_rate": 0.001
+  }
+}
